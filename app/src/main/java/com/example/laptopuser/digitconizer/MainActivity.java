@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView resultImageView;
     private CameraView cameraView;
 
-    private static final String MODEL_PATH = "model.tflite";
+    private static final String MODEL_PATH = "converted_model1.tflite";
     private static final String LABEL_PATH = "labels.txt";
     private static final int INPUT_SIZE = 28;
 
@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        initTensorflow();
+        initTensorFlow();
     }
 
     @Override
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void initTensorflow(){
+    private void initTensorFlow(){
         executor.execute(new Runnable() {
             @Override
             public void run() {
