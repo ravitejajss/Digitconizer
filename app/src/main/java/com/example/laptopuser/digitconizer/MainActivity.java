@@ -1,8 +1,14 @@
 package com.example.laptopuser.digitconizer;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -15,9 +21,15 @@ import com.wonderkiln.camerakit.CameraKitImage;
 import com.wonderkiln.camerakit.CameraKitVideo;
 import com.wonderkiln.camerakit.CameraView;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import static android.graphics.Color.red;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,6 +72,22 @@ public class MainActivity extends AppCompatActivity {
                 Bitmap bmp = cameraKitImage.getBitmap();
                 bmp = Bitmap.createScaledBitmap(bmp, INPUT_SIZE, INPUT_SIZE, false);
                 resultImageView.setImageBitmap(bmp);
+                float[][][][] pix = classifier.convertBitmapToByteBuffer(bmp);
+                String s = "";
+                for (int i = 0; i < INPUT_SIZE; ++i) {
+                    for (int j = 0; j < INPUT_SIZE; ++j) {
+                        s = s + pix[0][i][j][0] + " ";
+                    }
+                }
+                File path = getApplicationContext().getExternalFilesDir(null);
+                File file = new File(path, "imgData.txt");
+                try {
+                    FileOutputStream stream = new FileOutputStream(file);
+                    stream.write(s.getBytes());
+                    stream.close();
+                } catch (IOException e){
+                    e.printStackTrace();
+                }
                 final List<Classifier.Recognition> results = classifier.recognizeImage(bmp);
                 resultTextView.setText(results.toString());
             }
@@ -79,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         initTensorFlow();
+
     }
 
     @Override
@@ -119,5 +148,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public Bitmap toGrayscale(Bitmap bmpOriginal)
+    {
+        int width, height;
+        height = bmpOriginal.getHeight();
+        width = bmpOriginal.getWidth();
+
+        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmpGrayscale);
+        Paint paint = new Paint();
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0);
+        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+        paint.setColorFilter(f);
+        c.drawBitmap(bmpOriginal, 0, 0, paint);
+        return bmpGrayscale;
     }
 }

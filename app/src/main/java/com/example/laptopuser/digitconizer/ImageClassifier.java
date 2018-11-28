@@ -1,9 +1,11 @@
 package com.example.laptopuser.digitconizer;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import org.tensorflow.lite.Interpreter;
 
@@ -11,12 +13,15 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+
+import static android.graphics.Color.red;
 
 public class ImageClassifier implements Classifier {
 
@@ -43,6 +48,7 @@ public class ImageClassifier implements Classifier {
         return classifier;
     }
 
+
     @Override
     public List<Recognition> recognizeImage(Bitmap bitmap) {
         //ByteBuffer byteBuffer = convertBitmapToByteBuffer(bitmap);
@@ -52,16 +58,16 @@ public class ImageClassifier implements Classifier {
         return getSortedResult(result);
     }
 
-    private float[][][][] convertBitmapToByteBuffer(Bitmap bitmap) {
+    @Override
+    public float[][][][] convertBitmapToByteBuffer(Bitmap bitmap) {
         int[] intValues = new int[inputSize * inputSize];
         bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
         float[][][][] pixels = new float[1][inputSize][inputSize][1];
         for (int i = 0; i < inputSize; ++i) {
             for (int j = 0; j < inputSize; ++j) {
-                pixels[0][i][j][0] = (float) 255-intValues[i+j*inputSize];
+                pixels[0][i][j][0] = (float) 255-red(intValues[i+j*inputSize]);
             }
         }
-        System.out.print(pixels[0][0][0][0]+"----------------------------------\n\n\n\n\n");
         return pixels;
     }
 
