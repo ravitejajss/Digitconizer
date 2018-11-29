@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.wonderkiln.camerakit.CameraKitError;
 import com.wonderkiln.camerakit.CameraKitEvent;
@@ -37,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Executor executor = Executors.newSingleThreadExecutor();
     private TextView resultTextView;
+    private TextView textView;
     private ImageView resultImageView;
     private CameraView cameraView;
 
@@ -54,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
         cameraView = findViewById(R.id.cameraView);
         resultImageView = findViewById(R.id.resultImageView);
         resultTextView = findViewById(R.id.resultTextView);
+        textView = findViewById(R.id.textView);
 
         cameraView.addCameraKitListener(new CameraKitEventListener() {
             @Override
@@ -78,8 +82,9 @@ public class MainActivity extends AppCompatActivity {
                     for (int j = 0; j < INPUT_SIZE; ++j) {
                         s = s + pix[0][i][j][0] + " ";
                     }
+                    s = s + "\n";
                 }
-                File path = getApplicationContext().getExternalFilesDir(null);
+                String path = "/storage/BAB1-15FE/digitconizer";
                 File file = new File(path, "imgData.txt");
                 try {
                     FileOutputStream stream = new FileOutputStream(file);
@@ -88,7 +93,12 @@ public class MainActivity extends AppCompatActivity {
                 } catch (IOException e){
                     e.printStackTrace();
                 }
+                long time_init = System.nanoTime();
                 final List<Classifier.Recognition> results = classifier.recognizeImage(bmp);
+                long time = System.nanoTime();
+                float time_elapsed = (time-time_init)/1000000;
+                String result = "Time elapsed: " + String.valueOf(time_elapsed) + " ms";
+                textView.setText(result);
                 resultTextView.setText(results.toString());
             }
 

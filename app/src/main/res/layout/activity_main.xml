@@ -36,12 +36,20 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginTop="390dp"
+        android:textColor="@android:color/black"/>
+
     <Button
         android:id="@+id/btn"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
         android:layout_gravity="bottom|center"
-        android:layout_marginBottom="45dp"
+        android:layout_marginTop="455dp"
+        android:layout_marginBottom="0dp"
         android:text="@string/detect_number"
         android:textAllCaps="false"
         android:textColor="@android:color/black"
