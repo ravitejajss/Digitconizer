@@ -25,6 +25,7 @@ import com.wonderkiln.camerakit.CameraView;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
@@ -84,15 +85,19 @@ public class MainActivity extends AppCompatActivity {
                     }
                     s = s + "\n";
                 }
-                String path = "/storage/BAB1-15FE/digitconizer";
-                File file = new File(path, "imgData.txt");
+                File dir = new File(Environment.getExternalStoragePublicDirectory("Download").getAbsolutePath(),"imgData.txt");
+                boolean b = false;
                 try {
-                    FileOutputStream stream = new FileOutputStream(file);
-                    stream.write(s.getBytes());
-                    stream.close();
+                    b = dir.createNewFile();
+                    FileWriter writer = new FileWriter(dir);
+                    writer.append(s);
+                    writer.flush();
+                    writer.close();
                 } catch (IOException e){
                     e.printStackTrace();
                 }
+                Toast toast = Toast.makeText(getApplicationContext(),String.valueOf(b)+" "+String.valueOf(dir),Toast.LENGTH_LONG);
+                toast.show();
                 long time_init = System.nanoTime();
                 final List<Classifier.Recognition> results = classifier.recognizeImage(bmp);
                 long time = System.nanoTime();
