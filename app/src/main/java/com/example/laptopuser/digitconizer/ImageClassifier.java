@@ -21,16 +21,17 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import static android.graphics.Color.blue;
 import static android.graphics.Color.red;
 
 public class ImageClassifier implements Classifier {
 
+    private static final int CLASSES = 10;
     private static final int MAX_RESULTS = 6;
     private static final float THRESHOLD = 0.1f;
 
     private Interpreter interpreter;
     private int inputSize;
-    private List<String> labelList;
 
     private ImageClassifier(){
 
@@ -38,11 +39,9 @@ public class ImageClassifier implements Classifier {
 
     static Classifier create(AssetManager assetManager,
                              String modelPath,
-                             String labelPath,
                              int inputSize) throws IOException {
         ImageClassifier classifier = new ImageClassifier();
         classifier.inputSize = inputSize;
-        classifier.labelList = classifier.loadLabelList(assetManager, labelPath);
         classifier.interpreter = new Interpreter(classifier.loadModelFile(assetManager, modelPath));
 
         return classifier;
@@ -51,21 +50,29 @@ public class ImageClassifier implements Classifier {
 
     @Override
     public List<Recognition> recognizeImage(Bitmap bitmap) {
-        //ByteBuffer byteBuffer = convertBitmapToByteBuffer(bitmap);
-        float[][][][] byteArray = convertBitmapToByteBuffer(bitmap);
-        float[][] result = new float[1][labelList.size()];
-        interpreter.run(byteArray, result);
+        int[] intPix = convertBitmapToPixels(bitmap);
+        float[][][][] inp = new float[1][inputSize][inputSize][1];
+        for (int i = 0; i < inputSize; ++i) {
+            for (int j = 0; j < inputSize; ++j) {
+                inp[0][i][j][0] = intPix[i*inputSize+j];
+            }
+        }
+        float[][] result = new float[1][CLASSES];
+        interpreter.run(inp, result);
         return getSortedResult(result);
     }
 
     @Override
-    public float[][][][] convertBitmapToByteBuffer(Bitmap bitmap) {
+    public int[] convertBitmapToPixels(Bitmap bitmap) {
         int[] intValues = new int[inputSize * inputSize];
         bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-        float[][][][] pixels = new float[1][inputSize][inputSize][1];
-        for (int i = 0; i < inputSize; ++i) {
-            for (int j = 0; j < inputSize; ++j) {
-                pixels[0][i][j][0] = (float) 255-red(intValues[i+j*inputSize]);
+        int[] pixels = new int[inputSize*inputSize];
+        for (int i = 0; i < inputSize*inputSize; ++i) {
+            int pix = red(intValues[i]);
+            if(pix>100){
+                pixels[i] = 0;
+            }else{
+                pixels[i] = 255;
             }
         }
         return pixels;
@@ -78,17 +85,6 @@ public class ImageClassifier implements Classifier {
         long startOffset = fileDescriptor.getStartOffset();
         long declaredLength = fileDescriptor.getDeclaredLength();
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
-    }
-
-    private List<String> loadLabelList(AssetManager assetManager, String labelPath) throws IOException {
-        List<String> labelList = new ArrayList<>();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(assetManager.open(labelPath)));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            labelList.add(line);
-        }
-        reader.close();
-        return labelList;
     }
 
     @Override
@@ -110,11 +106,11 @@ public class ImageClassifier implements Classifier {
                             }
                         });
 
-        for (int i = 0; i < labelList.size(); ++i) {
+        for (int i = 0; i < CLASSES; ++i) {
             float confidence = (labelProbArray[0][i]);
             if (confidence > THRESHOLD) {
                 pq.add(new Recognition("" + i,
-                        labelList.size() > i ? labelList.get(i) : "unknown",
+                         Integer.toString(i),
                         confidence));
             }
         }

@@ -1,20 +1,17 @@
 package com.example.laptopuser.digitconizer;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
-import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.wonderkiln.camerakit.CameraKitError;
 import com.wonderkiln.camerakit.CameraKitEvent;
@@ -25,14 +22,11 @@ import com.wonderkiln.camerakit.CameraView;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.nio.IntBuffer;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
-import static android.graphics.Color.red;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
     private CameraView cameraView;
 
     private static final String MODEL_PATH = "converted_model1.tflite";
-    private static final String LABEL_PATH = "labels.txt";
     private static final int INPUT_SIZE = 28;
 
     @Override
@@ -76,28 +69,30 @@ public class MainActivity extends AppCompatActivity {
 
                 Bitmap bmp = cameraKitImage.getBitmap();
                 bmp = Bitmap.createScaledBitmap(bmp, INPUT_SIZE, INPUT_SIZE, false);
-                resultImageView.setImageBitmap(bmp);
-                float[][][][] pix = classifier.convertBitmapToByteBuffer(bmp);
-                String s = "";
+                int[] pix = classifier.convertBitmapToPixels(bmp);
+                String fileContents = "";
                 for (int i = 0; i < INPUT_SIZE; ++i) {
                     for (int j = 0; j < INPUT_SIZE; ++j) {
-                        s = s + pix[0][i][j][0] + " ";
+                        fileContents = fileContents + pix[i*INPUT_SIZE+j] + " ";
                     }
-                    s = s + "\n";
+                    fileContents = fileContents + "\n";
                 }
-                File dir = new File(Environment.getExternalStoragePublicDirectory("Download").getAbsolutePath(),"imgData.txt");
-                boolean b = false;
+
+                File path = getApplicationContext().getExternalFilesDir(null);
+                File file = new File(path, "image.txt");
+
                 try {
-                    b = dir.createNewFile();
-                    FileWriter writer = new FileWriter(dir);
-                    writer.append(s);
-                    writer.flush();
-                    writer.close();
-                } catch (IOException e){
-                    e.printStackTrace();
+                    FileOutputStream stream = new FileOutputStream(file);
+                    stream.write(fileContents.getBytes());
+                    stream.close();
                 }
-                Toast toast = Toast.makeText(getApplicationContext(),String.valueOf(b)+" "+String.valueOf(dir),Toast.LENGTH_LONG);
-                toast.show();
+                catch (IOException e) {
+                    Log.e("Exception", "File write failed: " + e.toString());
+                }
+
+                Bitmap bitmap = Bitmap.createBitmap(pix,INPUT_SIZE, INPUT_SIZE, Bitmap.Config.RGB_565);
+                resultImageView.setImageBitmap(bitmap);
+
                 long time_init = System.nanoTime();
                 final List<Classifier.Recognition> results = classifier.recognizeImage(bmp);
                 long time = System.nanoTime();
@@ -156,29 +151,11 @@ public class MainActivity extends AppCompatActivity {
                     classifier = ImageClassifier.create(
                             getAssets(),
                             MODEL_PATH,
-                            LABEL_PATH,
                             INPUT_SIZE);
                 }catch (final Exception e) {
                     throw new RuntimeException("Error Initializing TensorFlow!", e);
                 }
             }
         });
-    }
-
-    public Bitmap toGrayscale(Bitmap bmpOriginal)
-    {
-        int width, height;
-        height = bmpOriginal.getHeight();
-        width = bmpOriginal.getWidth();
-
-        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(bmpGrayscale);
-        Paint paint = new Paint();
-        ColorMatrix cm = new ColorMatrix();
-        cm.setSaturation(0);
-        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
-        paint.setColorFilter(f);
-        c.drawBitmap(bmpOriginal, 0, 0, paint);
-        return bmpGrayscale;
     }
 }

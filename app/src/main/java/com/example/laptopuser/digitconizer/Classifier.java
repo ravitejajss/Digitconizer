@@ -51,7 +51,7 @@ public interface Classifier {
     }
 
     List<Recognition> recognizeImage(Bitmap bitmap);
-    float[][][][] convertBitmapToByteBuffer(Bitmap bitmap);
+    int[] convertBitmapToPixels(Bitmap bitmap);
 
     void close();
 }
