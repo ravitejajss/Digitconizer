@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.wonderkiln.camerakit.CameraKitError;
 import com.wonderkiln.camerakit.CameraKitEvent;
@@ -38,8 +39,9 @@ public class MainActivity extends AppCompatActivity {
     private ImageView resultImageView;
     private CameraView cameraView;
 
-    private static final String MODEL_PATH = "converted_model1.tflite";
-    private static final int INPUT_SIZE = 28;
+    private static final String MODEL_PATH = "0.89055.tflite";
+    private static final int INPUT_SIZE_1 = 28;
+    private static final int INPUT_SIZE_2 = 56;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,13 +69,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onImage(CameraKitImage cameraKitImage) {
 
-                Bitmap bmp = cameraKitImage.getBitmap();
-                bmp = Bitmap.createScaledBitmap(bmp, INPUT_SIZE, INPUT_SIZE, false);
+                Bitmap bmp1 = cameraKitImage.getBitmap();
+                Bitmap bmp = Bitmap.createScaledBitmap(bmp1, INPUT_SIZE_1, INPUT_SIZE_2, false);
+                Toast toast = Toast.makeText(getApplicationContext(), bmp.getWidth() + ", " + bmp.getHeight(), Toast.LENGTH_LONG);
+                toast.show();
                 int[] pix = classifier.convertBitmapToPixels(bmp);
                 String fileContents = "";
-                for (int i = 0; i < INPUT_SIZE; ++i) {
-                    for (int j = 0; j < INPUT_SIZE; ++j) {
-                        fileContents = fileContents + pix[i*INPUT_SIZE+j] + " ";
+                for (int i = 0; i < INPUT_SIZE_1; ++i) {
+                    for (int j = 0; j < INPUT_SIZE_2; ++j) {
+                        fileContents = fileContents + pix[i*INPUT_SIZE_1+j] + " ";
                     }
                     fileContents = fileContents + "\n";
                 }
@@ -90,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("Exception", "File write failed: " + e.toString());
                 }
 
-                Bitmap bitmap = Bitmap.createBitmap(pix,INPUT_SIZE, INPUT_SIZE, Bitmap.Config.RGB_565);
+                Bitmap bitmap = Bitmap.createBitmap(pix,INPUT_SIZE_1, INPUT_SIZE_2, Bitmap.Config.RGB_565);
                 resultImageView.setImageBitmap(bitmap);
 
                 long time_init = System.nanoTime();
@@ -151,7 +155,8 @@ public class MainActivity extends AppCompatActivity {
                     classifier = ImageClassifier.create(
                             getAssets(),
                             MODEL_PATH,
-                            INPUT_SIZE);
+                            INPUT_SIZE_1,
+                            INPUT_SIZE_2);
                 }catch (final Exception e) {
                     throw new RuntimeException("Error Initializing TensorFlow!", e);
                 }

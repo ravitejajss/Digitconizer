@@ -26,12 +26,13 @@ import static android.graphics.Color.red;
 
 public class ImageClassifier implements Classifier {
 
-    private static final int CLASSES = 10;
+    private static final int CLASSES = 100;
     private static final int MAX_RESULTS = 6;
     private static final float THRESHOLD = 0.1f;
 
     private Interpreter interpreter;
-    private int inputSize;
+    private int inputSize1;
+    private int inputSize2;
 
     private ImageClassifier(){
 
@@ -39,9 +40,11 @@ public class ImageClassifier implements Classifier {
 
     static Classifier create(AssetManager assetManager,
                              String modelPath,
-                             int inputSize) throws IOException {
+                             int inputSize1,
+                             int inputSize2) throws IOException {
         ImageClassifier classifier = new ImageClassifier();
-        classifier.inputSize = inputSize;
+        classifier.inputSize1 = inputSize1;
+        classifier.inputSize2 = inputSize2;
         classifier.interpreter = new Interpreter(classifier.loadModelFile(assetManager, modelPath));
 
         return classifier;
@@ -51,10 +54,10 @@ public class ImageClassifier implements Classifier {
     @Override
     public List<Recognition> recognizeImage(Bitmap bitmap) {
         int[] intPix = convertBitmapToPixels(bitmap);
-        float[][][][] inp = new float[1][inputSize][inputSize][1];
-        for (int i = 0; i < inputSize; ++i) {
-            for (int j = 0; j < inputSize; ++j) {
-                inp[0][i][j][0] = intPix[i*inputSize+j];
+        float[][][][] inp = new float[1][inputSize1][inputSize2][1];
+        for (int i = 0; i < inputSize1; ++i) {
+            for (int j = 0; j < inputSize2; ++j) {
+                inp[0][i][j][0] = intPix[i*inputSize2+j];
             }
         }
         float[][] result = new float[1][CLASSES];
@@ -64,10 +67,11 @@ public class ImageClassifier implements Classifier {
 
     @Override
     public int[] convertBitmapToPixels(Bitmap bitmap) {
-        int[] intValues = new int[inputSize * inputSize];
+        int size = bitmap.getWidth() * bitmap.getHeight();
+        int[] intValues = new int[size];
         bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-        int[] pixels = new int[inputSize*inputSize];
-        for (int i = 0; i < inputSize*inputSize; ++i) {
+        int[] pixels = new int[size];
+        for (int i = 0; i < size; ++i) {
             int pix = red(intValues[i]);
             if(pix>100){
                 pixels[i] = 0;
