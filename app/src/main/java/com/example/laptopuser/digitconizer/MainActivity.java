@@ -70,14 +70,12 @@ public class MainActivity extends AppCompatActivity {
             public void onImage(CameraKitImage cameraKitImage) {
 
                 Bitmap bmp1 = cameraKitImage.getBitmap();
-                Bitmap bmp = Bitmap.createScaledBitmap(bmp1, INPUT_SIZE_1, INPUT_SIZE_2, false);
-                Toast toast = Toast.makeText(getApplicationContext(), bmp.getWidth() + ", " + bmp.getHeight(), Toast.LENGTH_LONG);
-                toast.show();
+                Bitmap bmp = Bitmap.createScaledBitmap(bmp1, INPUT_SIZE_2, INPUT_SIZE_2, false);
                 int[] pix = classifier.convertBitmapToPixels(bmp);
                 String fileContents = "";
                 for (int i = 0; i < INPUT_SIZE_1; ++i) {
                     for (int j = 0; j < INPUT_SIZE_2; ++j) {
-                        fileContents = fileContents + pix[i*INPUT_SIZE_1+j] + " ";
+                        fileContents = fileContents + pix[i*INPUT_SIZE_2+j] + " ";
                     }
                     fileContents = fileContents + "\n";
                 }
@@ -94,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("Exception", "File write failed: " + e.toString());
                 }
 
-                Bitmap bitmap = Bitmap.createBitmap(pix,INPUT_SIZE_1, INPUT_SIZE_2, Bitmap.Config.RGB_565);
+                Bitmap bitmap = Bitmap.createBitmap(pix,INPUT_SIZE_2, INPUT_SIZE_1, Bitmap.Config.RGB_565);
                 resultImageView.setImageBitmap(bitmap);
 
                 long time_init = System.nanoTime();

@@ -69,7 +69,7 @@ public class ImageClassifier implements Classifier {
     public int[] convertBitmapToPixels(Bitmap bitmap) {
         int size = bitmap.getWidth() * bitmap.getHeight();
         int[] intValues = new int[size];
-        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 14, bitmap.getWidth(), 28);//bitmap.getHeight());
         int[] pixels = new int[size];
         for (int i = 0; i < size; ++i) {
             int pix = red(intValues[i]);
